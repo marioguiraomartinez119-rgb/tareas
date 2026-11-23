@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tareas">
+<meta name="theme-color" content="#000000">
+<title>Tareas</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#f2f2f7;--card:#fff;--card2:#e9e9ef;--text:#111;--muted:#8a8a8e;--sep:rgba(60,60,67,.14);
+  --accent:#0a84ff;--red:#ff3b30;--orange:#ff9500;--green:#34c759;--purple:#af52de;--gray:#8e8e93;--blue:#007aff;
+  --shadow:0 1px 2px rgba(0,0,0,.05);
+  --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#000;--card:#1c1c1e;--card2:#2c2c2e;--text:#f5f5f7;--muted:#8e8e93;--sep:rgba(84,84,88,.45);
+  --red:#ff453a;--orange:#ff9f0a;--green:#30d158;--purple:#bf5af2;--blue:#0a84ff;--shadow:none}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:17px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding-bottom:calc(96px + var(--safe-b))}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+input,textarea,select{font:inherit;color:inherit}
+
+/* Cabecera */
+header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);padding:calc(var(--safe-t) + 10px) 16px 8px}
+.toprow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-size:34px;font-weight:700;letter-spacing:.2px;margin:4px 0 2px}
+.sub{color:var(--muted);font-size:14px}
+.iconbtn{width:36px;height:36px;border-radius:50%;background:var(--card);display:grid;place-items:center;box-shadow:var(--shadow);flex:none}
+.iconbtn svg{width:20px;height:20px}
+.filters{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:6px 12px;border-radius:999px;background:var(--card);font-size:14px;font-weight:500;box-shadow:var(--shadow);white-space:nowrap}
+.chip.on{background:var(--text);color:var(--bg)}
+
+main{padding:4px 16px}
+
+/* Radar */
+.radar{margin:8px 0 4px}
+.radar h3{font-size:13px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:600;margin:12px 4px 8px}
+.radar-row{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;scrollbar-width:none}
+.radar-row::-webkit-scrollbar{display:none}
+.rcard{flex:none;width:min(72vw,260px);scroll-snap-align:start;border-radius:16px;padding:12px 14px;color:#fff;text-align:left;position:relative;overflow:hidden}
+.rcard .big{font-size:30px;font-weight:700;line-height:1}
+.rcard .unit{font-size:13px;opacity:.9;font-weight:600}
+.rcard .t{font-weight:600;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rcard .d{font-size:13px;opacity:.9}
+
+/* Secciones */
+.section{margin-top:18px}
+.section h2{font-size:20px;font-weight:700;margin:0 4px 8px;display:flex;align-items:baseline;gap:8px}
+.section h2 .count{font-size:14px;color:var(--muted);font-weight:500}
+.section.overdue h2{color:var(--red)}
+.list{background:var(--card);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.row{display:flex;align-items:center;gap:12px;padding:11px 14px 11px 12px;position:relative;background:var(--card);touch-action:pan-y}
+.row + .row::before{content:"";position:absolute;top:0;left:50px;right:0;border-top:.5px solid var(--sep)}
+.row.urgent{box-shadow:inset 4px 0 0 var(--red)}
+.check{width:24px;height:24px;border-radius:50%;border:2px solid var(--muted);flex:none;display:grid;place-items:center;transition:.15s}
+.row.urgent .check{border-color:var(--red)}
+.check.done{background:var(--green);border-color:var(--green)}
+.check.done::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+.body{flex:1;min-width:0}
+.title{font-weight:500;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.row.isdone .title{color:var(--muted);text-decoration:line-through}
+.meta{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:2px;align-items:center}
+.meta .when{font-weight:600}
+.meta .when.soon{color:var(--orange)}
+.meta .when.late{color:var(--red)}
+.tag{padding:1px 7px;border-radius:6px;font-size:12px;font-weight:600}
+.calstate{font-size:15px;flex:none;opacity:.9}
+.empty{text-align:center;color:var(--muted);padding:60px 20px}
+.empty .e{font-size:48px}
+.empty button{margin-top:16px;color:var(--accent);font-weight:600}
+.donetoggle{display:block;margin:22px auto 0;color:var(--accent);font-size:15px;font-weight:500}
+
+/* Barra de añadir rápido */
+.composer{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:8px 12px calc(10px + var(--safe-b));background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--sep)}
+.preview{display:flex;gap:6px;flex-wrap:wrap;padding:0 4px 8px;font-size:13px}
+.preview:empty{display:none}
+.preview span{background:var(--card);padding:3px 9px;border-radius:999px;font-weight:500;box-shadow:var(--shadow)}
+.cbar{display:flex;gap:8px;align-items:center}
+.cbar input{flex:1;min-width:0;border:0;outline:0;background:var(--card);border-radius:22px;padding:11px 16px;font-size:17px;box-shadow:var(--shadow)}
+.cbar input::placeholder{color:var(--muted)}
+.round{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none}
+.round.add{background:var(--accent);color:#fff}
+.round.more{background:var(--card);box-shadow:var(--shadow)}
+.round svg{width:22px;height:22px}
+
+/* Hoja (editor / ajustes) */
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;background:var(--bg);border-radius:14px 14px 0 0;max-height:92vh;overflow-y:auto;transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);padding:0 16px calc(24px + var(--safe-b));-webkit-overflow-scrolling:touch}
+.sheet.show{transform:none}
+.sheet .grab{width:36px;height:5px;border-radius:3px;background:var(--muted);opacity:.5;margin:8px auto 4px}
+.sheethead{display:flex;justify-content:space-between;align-items:center;padding:6px 0 12px;position:sticky;top:0;background:var(--bg);z-index:2}
+.sheethead b{font-size:17px}
+.sheethead button{color:var(--accent);font-size:17px}
+.sheethead .save{font-weight:600}
+.group{background:var(--card);border-radius:12px;margin-bottom:18px;overflow:hidden}
+.field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;min-height:46px;position:relative}
+.field + .field::before{content:"";position:absolute;top:0;left:14px;right:0;border-top:.5px solid var(--sep)}
+.field label{flex:none}
+.field input[type=text],.field textarea{width:100%;border:0;outline:0;background:none;font-size:17px;padding:0}
+.field textarea{resize:none;min-height:64px}
+.field input[type=date],.field input[type=time]{border:0;background:var(--card2);border-radius:8px;padding:6px 10px;font-size:16px;-webkit-appearance:none;appearance:none;min-height:34px}
+.glabel{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin:0 14px 6px}
+.ghint{font-size:13px;color:var(--muted);margin:-12px 14px 18px;line-height:1.4}
+.switch{position:relative;width:51px;height:31px;flex:none}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch span{position:absolute;inset:0;background:var(--card2);border-radius:31px;transition:.2s}
+.switch span::before{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.switch input:checked + span{background:var(--green)}
+.switch input:checked + span::before{transform:translateX(20px)}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px}
+.cat{padding:10px 4px;border-radius:10px;background:var(--card2);font-size:13px;font-weight:600;text-align:center;line-height:1.3}
+.cat .em{font-size:20px;display:block}
+.cat.on{color:#fff}
+.alerts{display:flex;flex-wrap:wrap;gap:8px;padding:12px}
+.alerts .chip{background:var(--card2);box-shadow:none}
+.alerts .chip.on{background:var(--accent);color:#fff}
+.alertlist{font-size:14px;color:var(--muted);padding:0 14px 12px;line-height:1.5}
+.btn{display:block;width:100%;padding:13px;border-radius:12px;background:var(--card);font-weight:600;font-size:17px;text-align:center;margin-bottom:10px}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.danger{color:var(--red)}
+.btn:disabled{opacity:.4}
+.btnrow{display:flex;gap:10px}
+.btnrow .btn{flex:1;font-size:15px}
+.help{font-size:14px;color:var(--muted);line-height:1.5;padding:12px 14px}
+.help b{color:var(--text)}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:calc(110px + var(--safe-b));transform:translate(-50%,20px);background:#1c1c1ee6;color:#fff;padding:10px 16px;border-radius:14px;font-size:15px;display:flex;gap:14px;align-items:center;opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:92vw;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{color:#64d2ff;font-weight:600;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="toprow">
+    <div>
+      <div class="sub" id="today"></div>
+      <h1>Tareas</h1>
+    </div>
+    <button class="iconbtn" id="btnSettings" aria-label="Ajustes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>
+    </button>
+  </div>
+  <div class="filters" id="filters"></div>
+</header>
+
+<main id="main"></main>
+
+<div class="composer">
+  <div class="preview" id="preview"></div>
+  <form class="cbar" id="quickForm" autocomplete="off">
+    <button type="button" class="round more" id="btnMore" aria-label="Nueva tarea detallada">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M4 12h16M4 17h7"/></svg>
+    </button>
+    <input id="quick" type="text" enterkeyhint="done" placeholder="Examen TDA el 10 de dic…">
+    <button type="submit" class="round add" aria-label="Añadir">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </form>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="toastBtn"></button></div>
+
+<script>
+// ===== Parser de lenguaje natural (español) =====
+const MONTHS = {enero:0,ene:0,febrero:1,feb:1,marzo:2,mar:2,abril:3,abr:3,mayo:4,may:4,junio:5,jun:5,julio:6,jul:6,agosto:7,ago:7,septiembre:8,setiembre:8,sept:8,sep:8,octubre:9,oct:9,noviembre:10,nov:10,diciembre:11,dic:11};
+const MONTH_RE = 'enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre|ene|feb|mar|abr|may|jun|jul|ago|sept|sep|oct|nov|dic';
+const WEEKDAYS = {domingo:0,lunes:1,martes:2,miercoles:3,jueves:4,viernes:5,sabado:6};
+const NUM_WORDS = {un:1,una:1,uno:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,quince:15};
+
+const CAT_RULES = [
+  ['examen', /\b(examen|examenes|parcial|parciales|final|finales|recuperacion|convocatoria)\b/],
+  ['entrega', /\b(entregar|entrega|trabajo|proyecto|memoria|informe|boletin|tarea|completar|presentacion|practica|ejercicio|ejercicios)\b/],
+  ['cita', /\b(medico|cita|analisis|dentista|dermatologo|dermatologa|peluquero|peluqueria|fisio|fisioterapeuta|revision|consulta|reunion|tutoria)\b/],
+  ['clase', /\b(clase|clases|laboratorio|lab|practicas|venir|asistir|seminario)\b/],
+  ['recado', /\b(comprar|compra|ir|llevar|recoger|pagar|llamar|preguntar|mirar|devolver|enviar|mandar|pedir|reservar)\b/],
+];
+
+// Normaliza sin cambiar la longitud (para poder recortar el texto original por índices)
+function normalize(s) {
+  const map = {'á':'a','à':'a','ä':'a','â':'a','é':'e','è':'e','ë':'e','ê':'e','í':'i','ì':'i','ï':'i','î':'i','ó':'o','ò':'o','ö':'o','ô':'o','ú':'u','ù':'u','ü':'u','û':'u','ñ':'n'};
+  return s.toLowerCase().split('').map(c => map[c] || c).join('');
+}
+
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function startOfDay(d) { const r = new Date(d); r.setHours(0,0,0,0); return r; }
+function ymd(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+
+function dayOfMonthNearest(day, today) {
+  // Día suelto: este mes si aún no ha pasado, si no el mes siguiente
+  let d = new Date(today.getFullYear(), today.getMonth(), day);
+  if (d.getDate() !== day || d < today) d = new Date(today.getFullYear(), today.getMonth() + 1, day);
+  if (d.getDate() !== day) d = new Date(today.getFullYear(), today.getMonth() + 2, day);
+  return d;
+}
+
+function parseTask(input, now) {
+  now = now || new Date();
+  const today = startOfDay(now);
+  let norm = normalize(input);
+  const spans = [];
+  const blank = (m, idx) => { spans.push([idx, idx + m.length]); norm = norm.slice(0, idx) + ' '.repeat(m.length) + norm.slice(idx + m.length); };
+  const take = (re) => { re.lastIndex = 0; const m = re.exec(norm); if (m) blank(m[0], m.index); return m; };
+
+  let time = null, date = null, urgent = null;
+
+  // --- Urgencia explícita
+  let m = take(/(\burgente\b|\bimportante\b|!!+)/);
+  if (m) urgent = true;
+
+  // --- Hora
+  const fixHour = (h, mer) => {
+    if (mer) {
+      if (/tarde|noche|pm/.test(mer) && h < 12) h += 12;
+      if (/manana|am/.test(mer) && h === 12) h = 0;
+    } else if (h >= 1 && h <= 7) h += 12; // "a las 3:30" casi siempre es por la tarde
+    return h;
+  };
+  m = take(/\b(?:a\s+las?|sobre\s+las?|hacia\s+las?|desde\s+las?)\s+(\d{1,2})(?:[:.h](\d{2}))?\s*(?:h\b|horas\b)?\s*(de\s+la\s+manana|de\s+la\s+tarde|de\s+la\s+noche|am\b|pm\b)?/);
+  if (!m) m = take(/\b(\d{1,2})[:h](\d{2})\b\s*(de\s+la\s+manana|de\s+la\s+tarde|de\s+la\s+noche|am\b|pm\b)?/);
+  if (!m) m = take(/\b(\d{1,2})\s*(h)\b()/);
+  if (m) {
+    let h = parseInt(m[1], 10), mi = (m[2] && /^\d+$/.test(m[2])) ? parseInt(m[2], 10) : 0;
+    h = fixHour(h, m[3]);
+    if (h < 24 && mi < 60) time = String(h).padStart(2,'0') + ':' + String(mi).padStart(2,'0');
+  }
+  if (!time) { m = take(/\b(?:por\s+la|de\s+la)\s+(manana|tarde|noche)\b/); }
+
+  // --- Fecha
+  const P = '(?:para\\s+)?(?:el\\s+)?(?:dia\\s+)?';
+  // 1) "10 de diciembre", "3 dic 2027"
+  m = take(new RegExp('\\b' + P + '(\\d{1,2})\\s*(?:de\\s+)?(' + MONTH_RE + ')\\b\\.?(?:\\s+(?:de\\s+|del\\s+)?(\\d{4}))?'));
+  if (m) {
+    const day = +m[1], mon = MONTHS[m[2]];
+    let y = m[3] ? +m[3] : today.getFullYear();
+    let d = new Date(y, mon, day);
+    if (!m[3] && d < addDays(today, -7)) d = new Date(y + 1, mon, day);
+    if (d.getDate() === day) date = d;
+  }
+  // 2) "3/12", "03-12-2026"
+  if (!date) {
+    m = take(new RegExp('\\b' + P + '(\\d{1,2})[\\/\\-](\\d{1,2})(?:[\\/\\-](\\d{2,4}))?\\b'));
+    if (m) {
+      const day = +m[1], mon = +m[2] - 1;
+      let y = m[3] ? (+m[3] < 100 ? 2000 + +m[3] : +m[3]) : today.getFullYear();
+      let d = new Date(y, mon, day);
+      if (!m[3] && d < addDays(today, -7)) d = new Date(y + 1, mon, day);
+      if (mon >= 0 && mon < 12 && d.getDate() === day) date = d;
+    }
+  }
+  // 3) relativos
+  if (!date) {
+    m = take(/\b(?:para\s+)?pasado\s+manana\b/);
+    if (m) date = addDays(today, 2);
+  }
+  if (!date) {
+    m = take(/(?<!la\s)(?<!las\s)\b(?:para\s+)?manana\b/);
+    if (m) date = addDays(today, 1);
+  }
+  if (!date) {
+    m = take(/\b(?:para\s+)?hoy\b|\besta\s+(?:tarde|noche)\b/);
+    if (m) date = today;
+  }
+  if (!date) {
+    m = take(/\b(?:en|dentro\s+de)\s+(\d{1,2}|un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|quince)\s+(dias?|semanas?|mes|meses)\b/);
+    if (m) {
+      const n = /^\d+$/.test(m[1]) ? +m[1] : NUM_WORDS[m[1]];
+      if (/^dia/.test(m[2])) date = addDays(today, n);
+      else if (/^semana/.test(m[2])) date = addDays(today, 7 * n);
+      else { date = new Date(today); date.setMonth(date.getMonth() + n); }
+    }
+  }
+  if (!date) {
+    m = take(/\b(?:la\s+)?(?:semana\s+que\s+viene|proxima\s+semana)\b/);
+    if (m) { const wd = today.getDay(); date = addDays(today, ((8 - wd) % 7) || 7); } // próximo lunes
+  }
+  // 4) "jueves 3", "el próximo martes", "el viernes"
+  if (!date) {
+    m = take(/\b(?:para\s+)?(?:el\s+)?(?:proximo\s+|este\s+)?(lunes|martes|miercoles|jueves|viernes|sabado|domingo)(?:\s+que\s+viene)?(?:\s+(?:dia\s+)?(\d{1,2})\b)?/);
+    if (m) {
+      if (m[2]) date = dayOfMonthNearest(+m[2], today);
+      else {
+        const target = WEEKDAYS[m[1]];
+        let diff = (target - today.getDay() + 7) % 7;
+        if (diff === 0) diff = 7;
+        date = addDays(today, diff);
+      }
+    }
+  }
+  // 5) "el 6", "para el 6", "día 6"
+  if (!date) {
+    m = take(/\b(?:para\s+el|el\s+dia|el|dia)\s+(\d{1,2})\b(?!\s*(?:%|euros?|€|personas?|horas?))/);
+    if (m && +m[1] >= 1 && +m[1] <= 31) date = dayOfMonthNearest(+m[1], today);
+  }
+
+  // --- Título: original sin los trozos de fecha/hora
+  spans.sort((a, b) => b[0] - a[0]);
+  let title = input;
+  for (const [a, b] of spans) title = title.slice(0, a) + ' ' + title.slice(b);
+  title = title.replace(/\s+/g, ' ')
+    .replace(/\s+([,.;:])/g, '$1')
+    .replace(/^[\s,.;:\-–]+|[\s,.;:\-–]+$/g, '')
+    .replace(/^(?:el|la|los|las|para|de|y|a)\s+/i, '')
+    .replace(/\s+(?:el|la|los|las|para|de|y|a|del)$/i, '')
+    .trim();
+  if (title) title = title.charAt(0).toUpperCase() + title.slice(1);
+
+  // --- Categoría
+  const nt = normalize(title || input);
+  let cat = 'otro';
+  for (const [c, re] of CAT_RULES) { if (re.test(nt)) { cat = c; break; } }
+
+  return { title, date: date ? ymd(date) : null, time, cat, urgent };
+}
+
+if (typeof module !== 'undefined') module.exports = { parseTask, normalize, ymd };
+
+
+// ===== Configuración de categorías =====
+// alerts = días de antelación por defecto (0 = el mismo día)
+const CATS = {
+  examen:  {label:'Examen',  em:'📝', color:'#ff3b30', urgent:true,  alerts:[7,3,1]},
+  entrega: {label:'Entrega', em:'📦', color:'#ff9500', urgent:true,  alerts:[3,1]},
+  cita:    {label:'Cita',    em:'🩺', color:'#af52de', urgent:false, alerts:[1,0]},
+  clase:   {label:'Clase',   em:'🎓', color:'#007aff', urgent:false, alerts:[1]},
+  recado:  {label:'Recado',  em:'🛒', color:'#34c759', urgent:false, alerts:[0]},
+  otro:    {label:'Otro',    em:'📌', color:'#8e8e93', urgent:false, alerts:[0]},
+};
+const ALERT_OPTS = [[0,'Mismo día'],[1,'1 día antes'],[2,'2 días'],[3,'3 días'],[7,'1 semana'],[14,'2 semanas']];
+const WD_SHORT = ['dom','lun','mar','mié','jue','vie','sáb'];
+const WD_LONG = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const MON_SHORT = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const MON_LONG = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+// ===== Estado y guardado =====
+const LS = 'tareas.v1';
+let S = load();
+function load(){
+  try { const r = JSON.parse(localStorage.getItem(LS)); if (r && Array.isArray(r.tasks)) return Object.assign({filter:'all', showDone:false}, r); } catch(e){}
+  return {tasks:[], filter:'all', showDone:false};
+}
+function save(){ try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){} }
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+// ===== Fechas =====
+const today0 = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const fromYMD = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const daysUntil = s => Math.round((fromYMD(s) - today0()) / 864e5);
+function fmtDate(s, long){
+  const d = fromYMD(s), y = d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : '';
+  return long ? `${WD_LONG[d.getDay()]} ${d.getDate()} de ${MON_LONG[d.getMonth()]}${y}` : `${WD_SHORT[d.getDay()]} ${d.getDate()} ${MON_SHORT[d.getMonth()]}${y}`;
+}
+function relLabel(n){
+  if (n < -1) return `hace ${-n} días`;
+  if (n === -1) return 'ayer';
+  if (n === 0) return 'hoy';
+  if (n === 1) return 'mañana';
+  if (n < 14) return `en ${n} días`;
+  if (n < 60) return `en ${Math.round(n/7)} semanas`;
+  return `en ${Math.round(n/30)} meses`;
+}
+
+// Momento exacto de cada aviso:
+//  ≥2 días antes → 9:00 · 1 día antes → 20:00 (la noche anterior) · mismo día → 1 h antes si hay hora, si no 8:30
+function alarmMoments(t){
+  if (!t.date) return [];
+  const base = fromYMD(t.date);
+  return [...new Set(t.alerts)].sort((a,b)=>b-a).map(n => {
+    const d = new Date(base); d.setDate(d.getDate() - n);
+    if (n >= 2) d.setHours(9,0,0,0);
+    else if (n === 1) d.setHours(20,0,0,0);
+    else if (t.time) { const [h,m] = t.time.split(':').map(Number); d.setHours(h - 1, m, 0, 0); }
+    else d.setHours(8,30,0,0);
+    return d;
+  });
+}
+const fmtMoment = d => `${WD_SHORT[d.getDay()]} ${d.getDate()} ${MON_SHORT[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+// ===== Render =====
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const calSig = t => [t.title, t.date, t.time, t.alerts.slice().sort().join(','), t.cat].join('|');
+
+function sortTasks(a, b){
+  if (a.date && b.date) {
+    if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+    if ((a.time||'99') !== (b.time||'99')) return (a.time||'99') < (b.time||'99') ? -1 : 1;
+    return (b.urgent - a.urgent);
+  }
+  if (a.date) return -1;
+  if (b.date) return 1;
+  if (a.urgent !== b.urgent) return b.urgent - a.urgent;
+  return a.createdAt - b.createdAt;
+}
+
+function passFilter(t){
+  if (S.filter === 'all') return true;
+  if (S.filter === 'urgent') return t.urgent;
+  return t.cat === S.filter;
+}
+
+function renderFilters(){
+  const pend = S.tasks.filter(t => !t.done);
+  const items = [['all','Todas', pend.length], ['urgent','⚡ Urgentes', pend.filter(t=>t.urgent).length]];
+  for (const [k,c] of Object.entries(CATS)) { const n = pend.filter(t=>t.cat===k).length; if (n) items.push([k, c.em + ' ' + c.label, n]); }
+  $('#filters').innerHTML = items.map(([k,l,n]) => `<button class="chip ${S.filter===k?'on':''}" data-filter="${k}">${l} <span style="opacity:.6">${n}</span></button>`).join('');
+}
+
+function rowHTML(t){
+  const c = CATS[t.cat] || CATS.otro;
+  let when = '', cls = '';
+  if (t.date) {
+    const n = daysUntil(t.date);
+    cls = t.done ? '' : n < 0 ? 'late' : (n <= 2 ? 'soon' : '');
+    when = `<span class="when ${cls}">${relLabel(n)}</span><span>${fmtDate(t.date)}${t.time ? ' · ' + t.time : ''}</span>`;
+  }
+  let cal = '';
+  if (t.date && !t.done) cal = t.calSig ? (t.calSig === calSig(t) ? '<span class="calstate" title="En el calendario">📅</span>' : '<span class="calstate" title="Cambiada desde que la añadiste">⚠️</span>') : '';
+  return `<div class="row ${t.urgent && !t.done ? 'urgent':''} ${t.done?'isdone':''}" data-id="${t.id}">
+    <button class="check ${t.done?'done':''}" data-act="toggle" aria-label="Completar"></button>
+    <div class="body" data-act="edit">
+      <div class="title">${t.urgent && !t.done ? '⚡ ' : ''}${esc(t.title)}</div>
+      <div class="meta"><span class="tag" style="background:${c.color}22;color:${c.color}">${c.em} ${c.label}</span>${when}${t.notes ? '<span>📝</span>' : ''}</div>
+    </div>${cal}
+  </div>`;
+}
+
+function section(title, tasks, extra){
+  if (!tasks.length) return '';
+  return `<div class="section ${extra||''}"><h2>${title}<span class="count">${tasks.length}</span></h2><div class="list">${tasks.map(rowHTML).join('')}</div></div>`;
+}
+
+function render(){
+  const d = new Date();
+  $('#today').textContent = `${WD_LONG[d.getDay()]} ${d.getDate()} de ${MON_LONG[d.getMonth()]}`;
+  renderFilters();
+  const pend = S.tasks.filter(t => !t.done && passFilter(t)).sort(sortTasks);
+  const done = S.tasks.filter(t => t.done && passFilter(t)).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
+  let html = '';
+
+  // Radar: urgentes cuyo periodo de aviso ya ha empezado (o atrasadas)
+  const radar = S.tasks.filter(t => !t.done && t.urgent && t.date && daysUntil(t.date) <= Math.max(...t.alerts, 0)).sort(sortTasks);
+  if (radar.length && (S.filter === 'all' || S.filter === 'urgent')) {
+    html += `<div class="radar"><h3>En el radar</h3><div class="radar-row">` + radar.map(t => {
+      const n = daysUntil(t.date), c = CATS[t.cat] || CATS.otro;
+      const big = n < 0 ? '!' : n === 0 ? 'HOY' : n;
+      const unit = n < 0 ? `atrasada ${-n} d` : n === 0 ? (t.time || '') : n === 1 ? 'día' : 'días';
+      const bg = n <= 1 ? 'linear-gradient(135deg,#ff453a,#ff2d55)' : n <= 3 ? 'linear-gradient(135deg,#ff9f0a,#ff6a00)' : `linear-gradient(135deg,${c.color},${c.color}cc)`;
+      return `<button class="rcard" style="background:${bg}" data-id="${t.id}" data-act="edit"><span class="big">${big}</span> <span class="unit">${unit}</span><div class="t">${c.em} ${esc(t.title)}</div><div class="d">${fmtDate(t.date)}${t.time?' · '+t.time:''}</div></button>`;
+    }).join('') + `</div></div>`;
+  }
+
+  const groups = {late:[], today:[], tomorrow:[], week:[], months:{}, nodate:[]};
+  for (const t of pend) {
+    if (!t.date) { groups.nodate.push(t); continue; }
+    const n = daysUntil(t.date);
+    if (n < 0) groups.late.push(t);
+    else if (n === 0) groups.today.push(t);
+    else if (n === 1) groups.tomorrow.push(t);
+    else if (n <= 7) groups.week.push(t);
+    else { const k = t.date.slice(0,7); (groups.months[k] = groups.months[k] || []).push(t); }
+  }
+  html += section('Atrasadas', groups.late, 'overdue');
+  html += section('Hoy', groups.today);
+  html += section('Mañana', groups.tomorrow);
+  html += section('Próximos 7 días', groups.week);
+  for (const k of Object.keys(groups.months).sort()) {
+    const [y,m] = k.split('-').map(Number);
+    const name = MON_LONG[m-1].charAt(0).toUpperCase() + MON_LONG[m-1].slice(1) + (y !== d.getFullYear() ? ' ' + y : '');
+    html += section(name, groups.months[k]);
+  }
+  html += section('Sin fecha', groups.nodate);
+
+  if (!pend.length) {
+    html += S.tasks.length
+      ? `<div class="empty"><div class="e">🎉</div><p>Nada pendiente${S.filter!=='all'?' en este filtro':''}.</p></div>`
+      : `<div class="empty"><div class="e">✍️</div><p>Escribe abajo como lo harías en Notas:<br><b>“examen redes el 10 de dic”</b><br>y la app detecta la fecha, la hora y el tipo.</p><button data-act="seed">Cargar las tareas de mi nota</button></div>`;
+  }
+  if (done.length) {
+    html += `<button class="donetoggle" data-act="toggleDone">${S.showDone ? 'Ocultar' : 'Mostrar'} completadas (${done.length})</button>`;
+    if (S.showDone) html += section('Completadas', done);
+  }
+  $('#main').innerHTML = html;
+}
+
+// ===== Añadir rápido =====
+function draftFromText(txt){
+  const p = parseTask(txt);
+  const c = CATS[p.cat];
+  return {id: uid(), title: p.title || txt.trim(), notes:'', cat:p.cat, date:p.date, time:p.time,
+          urgent: p.urgent === true ? true : c.urgent, alerts: c.alerts.slice(), done:false, createdAt: Date.now(), calSig:null};
+}
+function updatePreview(){
+  const v = $('#quick').value.trim();
+  if (!v) { $('#preview').innerHTML = ''; return; }
+  const t = draftFromText(v), c = CATS[t.cat];
+  const parts = [`${c.em} ${c.label}`];
+  parts.push(t.date ? `📅 ${fmtDate(t.date)}${t.time ? ' · ' + t.time : ''}` : '∞ Sin fecha');
+  if (t.urgent) parts.push('⚡ Urgente');
+  if (t.date) parts.push('🔔 ' + t.alerts.map(a => a === 0 ? 'mismo día' : a === 7 ? '1 sem' : a === 14 ? '2 sem' : a + 'd').join(', '));
+  $('#preview').innerHTML = parts.map(p => `<span>${esc(p)}</span>`).join('');
+}
+$('#quick').addEventListener('input', updatePreview);
+$('#quickForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('#quick').value.trim();
+  if (!v) { openEditor(null); return; }
+  const t = draftFromText(v);
+  S.tasks.push(t); save();
+  $('#quick').value = ''; updatePreview(); render();
+  toast(`Añadida${t.date ? ' · ' + fmtDate(t.date) : ''}`, 'Editar', () => openEditor(t.id));
+});
+$('#btnMore').addEventListener('click', () => {
+  const v = $('#quick').value.trim();
+  openEditor(null, v ? draftFromText(v) : null);
+  $('#quick').value = ''; updatePreview();
+});
+
+// ===== Lista: acciones =====
+document.addEventListener('click', e => {
+  const f = e.target.closest('[data-filter]');
+  if (f) { S.filter = f.dataset.filter; save(); render(); return; }
+  const a = e.target.closest('[data-act]');
+  if (!a) return;
+  const act = a.dataset.act, row = a.closest('[data-id]'), id = row && row.dataset.id;
+  if (act === 'toggle') toggleDone(id);
+  else if (act === 'edit') openEditor(id);
+  else if (act === 'toggleDone') { S.showDone = !S.showDone; save(); render(); }
+  else if (act === 'seed') seed();
+});
+function toggleDone(id){
+  const t = S.tasks.find(x => x.id === id); if (!t) return;
+  t.done = !t.done; t.doneAt = t.done ? Date.now() : null; save();
+  if (t.done) {
+    const el = document.querySelector(`.row[data-id="${id}"] .check`);
+    if (el) el.classList.add('done');
+    setTimeout(render, 280);
+    toast('Completada ✓', 'Deshacer', () => { t.done = false; t.doneAt = null; save(); render(); });
+  } else render();
+}
+
+// ===== Editor =====
+let editing = null, editingIsNew = false;
+function openEditor(id, draft){
+  const t = id ? S.tasks.find(x => x.id === id) : null;
+  editingIsNew = !t;
+  editing = JSON.parse(JSON.stringify(t || draft || {id:uid(), title:'', notes:'', cat:'otro', date:null, time:null, urgent:false, alerts:[0], done:false, createdAt:Date.now(), calSig:null}));
+  renderEditor();
+  openSheet();
+  if (editingIsNew && !editing.title) setTimeout(() => { const i = $('#fTitle'); if (i) i.focus(); }, 320);
+}
+function renderEditor(){
+  const t = editing;
+  const moments = alarmMoments(t), now = new Date();
+  const calText = !t.date ? 'Ponle fecha para poder añadirla al calendario.'
+    : t.calSig && t.calSig === calSig(t) ? '📅 Ya está en tu calendario.'
+    : t.calSig ? '⚠️ Has cambiado la tarea desde que la añadiste: añádela de nuevo y borra el evento antiguo.'
+    : 'Los avisos llegan como notificaciones del Calendario de iOS.';
+  $('#sheet').innerHTML = `
+    <div class="grab"></div>
+    <div class="sheethead"><button data-ed="cancel">Cancelar</button><b>${editingIsNew ? 'Nueva tarea' : 'Editar'}</b><button class="save" data-ed="save">${editingIsNew ? 'Añadir' : 'Guardar'}</button></div>
+    <div class="group">
+      <div class="field"><input id="fTitle" type="text" placeholder="Título" value="${esc(t.title)}"></div>
+      <div class="field"><textarea id="fNotes" placeholder="Notas (material, temas, aula…)">${esc(t.notes||'')}</textarea></div>
+    </div>
+    <div class="glabel">Tipo</div>
+    <div class="group"><div class="cats">${Object.entries(CATS).map(([k,c]) => `<button class="cat ${t.cat===k?'on':''}" style="${t.cat===k?'background:'+c.color:''}" data-cat="${k}"><span class="em">${c.em}</span>${c.label}</button>`).join('')}</div></div>
+    <div class="ghint">Al cambiar el tipo se ponen sus avisos por defecto. Los puedes ajustar abajo.</div>
+    <div class="group">
+      <div class="field"><label>⚡ Urgente</label><label class="switch"><input type="checkbox" id="fUrgent" ${t.urgent?'checked':''}><span></span></label></div>
+      <div class="field"><label>📅 Con fecha</label><label class="switch"><input type="checkbox" id="fHasDate" ${t.date?'checked':''}><span></span></label></div>
+      ${t.date ? `<div class="field"><label>Día</label><input type="date" id="fDate" value="${t.date}"></div>
+      <div class="field"><label>Hora <span style="color:var(--muted);font-size:14px">(opcional)</span></label><span style="display:flex;gap:8px;align-items:center"><input type="time" id="fTime" value="${t.time||''}">${t.time?'<button data-ed="clearTime" style="color:var(--muted);font-size:20px">✕</button>':''}</span></div>` : ''}
+    </div>
+    ${t.date ? `<div class="glabel">Avisarme</div>
+    <div class="group">
+      <div class="alerts">${ALERT_OPTS.map(([n,l]) => `<button class="chip ${t.alerts.includes(n)?'on':''}" data-alert="${n}">${l}</button>`).join('')}</div>
+      <div class="alertlist">${moments.length ? moments.map(m => `🔔 ${fmtMoment(m)}${m < now ? ' <i>(ya pasó)</i>' : ''}`).join('<br>') : 'Sin avisos'}</div>
+    </div>
+    <div class="ghint">${calText}</div>
+    <div class="btnrow"><button class="btn primary" data-ed="cal">📅 Añadir al calendario</button><button class="btn" data-ed="share" style="flex:.45">Compartir</button></div>` : ''}
+    ${!editingIsNew ? `<button class="btn" data-ed="done">${t.done ? '↩︎ Marcar pendiente' : '✓ Marcar completada'}</button><button class="btn danger" data-ed="delete">Eliminar tarea</button>` : ''}
+  `;
+}
+function readEditorFields(){
+  const g = id => document.getElementById(id);
+  if (g('fTitle')) editing.title = g('fTitle').value.trim();
+  if (g('fNotes')) editing.notes = g('fNotes').value;
+  if (g('fUrgent')) editing.urgent = g('fUrgent').checked;
+  if (g('fDate') && g('fDate').value) editing.date = g('fDate').value;
+  if (g('fTime')) editing.time = g('fTime').value || null;
+}
+$('#sheet').addEventListener('change', e => {
+  readEditorFields();
+  if (e.target.id === 'fHasDate') {
+    if (e.target.checked) { const d = new Date(); d.setDate(d.getDate()+1); editing.date = ymd(d); }
+    else { editing.date = null; editing.time = null; }
+    renderEditor();
+  } else if (e.target.id === 'fDate' || e.target.id === 'fTime') renderEditor();
+});
+$('#sheet').addEventListener('click', e => {
+  if ($('#settingsMarker')) return; // la hoja de ajustes tiene su propio manejador
+  const cat = e.target.closest('[data-cat]'), al = e.target.closest('[data-alert]'), ed = e.target.closest('[data-ed]');
+  if (cat) { readEditorFields(); editing.cat = cat.dataset.cat; editing.alerts = CATS[editing.cat].alerts.slice(); editing.urgent = CATS[editing.cat].urgent; renderEditor(); return; }
+  if (al) { readEditorFields(); const n = +al.dataset.alert; editing.alerts = editing.alerts.includes(n) ? editing.alerts.filter(x=>x!==n) : [...editing.alerts, n]; renderEditor(); return; }
+  if (!ed) return;
+  const act = ed.dataset.ed;
+  readEditorFields();
+  if (act === 'cancel') closeSheet();
+  else if (act === 'clearTime') { editing.time = null; renderEditor(); }
+  else if (act === 'save') {
+    if (!editing.title) { $('#fTitle').focus(); return; }
+    commitEditing(); closeSheet(); render();
+  }
+  else if (act === 'cal' || act === 'share') {
+    if (!editing.title) { $('#fTitle').focus(); return; }
+    commitEditing();
+    deliverICS(buildICS([editing]), slug(editing.title) + '.ics', act === 'share');
+    const t = S.tasks.find(x => x.id === editing.id); t.calSig = calSig(t); editing.calSig = t.calSig; save();
+    renderEditor(); render();
+  }
+  else if (act === 'done') { commitEditing(); closeSheet(); toggleDone(editing.id); }
+  else if (act === 'delete') {
+    const idx = S.tasks.findIndex(x => x.id === editing.id), removed = S.tasks[idx];
+    if (idx >= 0) S.tasks.splice(idx, 1); save(); closeSheet(); render();
+    toast(removed && removed.calSig ? 'Eliminada · borra también el evento del Calendario' : 'Eliminada', 'Deshacer', () => { S.tasks.splice(idx, 0, removed); save(); render(); });
+  }
+});
+function commitEditing(){
+  const i = S.tasks.findIndex(x => x.id === editing.id);
+  if (i >= 0) S.tasks[i] = JSON.parse(JSON.stringify(editing)); else { S.tasks.push(JSON.parse(JSON.stringify(editing))); editingIsNew = false; }
+  save();
+}
+
+// ===== Hoja =====
+function openSheet(){ $('#toast').classList.remove('show'); $('#overlay').classList.add('show'); $('#sheet').classList.add('show'); $('#sheet').scrollTop = 0; }
+function closeSheet(){ $('#overlay').classList.remove('show'); $('#sheet').classList.remove('show'); document.activeElement && document.activeElement.blur(); }
+$('#overlay').addEventListener('click', closeSheet);
+
+// ===== Calendario (.ics con alarmas) =====
+const pad = n => String(n).padStart(2,'0');
+const icsUTC = d => `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`;
+const icsEsc = s => String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+function fold(line){
+  const out = []; let cur = '', bytes = 0;
+  for (const ch of line) {
+    const b = new TextEncoder().encode(ch).length;
+    if (bytes + b > 73) { out.push(cur); cur = ' '; bytes = 1; }
+    cur += ch; bytes += b;
+  }
+  out.push(cur); return out.join('\r\n');
+}
+function buildICS(tasks){
+  const L = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Tareas//ES','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  const now = new Date();
+  for (const t of tasks) {
+    if (!t.date) continue;
+    const c = CATS[t.cat] || CATS.otro;
+    L.push('BEGIN:VEVENT', 'UID:' + t.id + '@tareas.app', 'DTSTAMP:' + icsUTC(now));
+    if (t.time) {
+      const [h,m] = t.time.split(':').map(Number), s = fromYMD(t.date); s.setHours(h,m,0,0);
+      const e = new Date(s.getTime() + 60*60*1000);
+      L.push('DTSTART:' + icsUTC(s), 'DTEND:' + icsUTC(e));
+    } else {
+      const s = fromYMD(t.date), e = new Date(s); e.setDate(e.getDate()+1);
+      L.push('DTSTART;VALUE=DATE:' + ymd(s).replace(/-/g,''), 'DTEND;VALUE=DATE:' + ymd(e).replace(/-/g,''), 'TRANSP:TRANSPARENT');
+    }
+    L.push('SUMMARY:' + icsEsc(`${c.em} ${t.urgent ? '⚡ ' : ''}${t.title}`));
+    if (t.notes) L.push('DESCRIPTION:' + icsEsc(t.notes));
+    L.push('CATEGORIES:' + icsEsc(c.label));
+    for (const m of alarmMoments(t)) {
+      if (m < now) continue;
+      const n = Math.round((fromYMD(t.date) - new Date(m.getFullYear(), m.getMonth(), m.getDate())) / 864e5);
+      const txt = n === 0 ? `Hoy: ${t.title}${t.time ? ' a las ' + t.time : ''}` : n === 1 ? `Mañana: ${t.title}` : `En ${n} días: ${t.title}`;
+      L.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(txt), 'TRIGGER;VALUE=DATE-TIME:' + icsUTC(m), 'END:VALARM');
+    }
+    L.push('END:VEVENT');
+  }
+  L.push('END:VCALENDAR');
+  return L.map(fold).join('\r\n') + '\r\n';
+}
+const slug = s => (s||'tarea').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w]+/g,'-').replace(/^-|-$/g,'').slice(0,40) || 'tarea';
+async function deliverICS(text, name, preferShare){
+  const blob = new Blob([text], {type:'text/calendar;charset=utf-8'});
+  if (preferShare) {
+    try {
+      const file = new File([blob], name, {type:'text/calendar'});
+      if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file]}); return; }
+    } catch(e) { if (e && e.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+// ===== Ajustes =====
+$('#btnSettings').addEventListener('click', openSettings);
+function openSettings(){
+  const pendDated = S.tasks.filter(t => !t.done && t.date && t.calSig !== calSig(t));
+  const doneN = S.tasks.filter(t => t.done).length;
+  $('#sheet').innerHTML = `<span id="settingsMarker"></span>
+    <div class="grab"></div>
+    <div class="sheethead"><span></span><b>Ajustes</b><button class="save" data-st="close">OK</button></div>
+    <div class="glabel">Calendario</div>
+    <div class="group">
+      <button class="field" data-st="calAll" style="width:100%;text-align:left" ${pendDated.length?'':'disabled'}><span>📅 Añadir al calendario las que faltan</span><span style="color:var(--muted)">${pendDated.length}</span></button>
+    </div>
+    <div class="glabel">Copia de seguridad</div>
+    <div class="group">
+      <button class="field" data-st="export" style="width:100%;text-align:left"><span>⬇️ Exportar copia (.json)</span></button>
+      <label class="field" style="cursor:pointer"><span>⬆️ Importar copia</span><input type="file" id="importFile" accept=".json,application/json" style="display:none"></label>
+    </div>
+    <div class="glabel">Limpieza</div>
+    <div class="group">
+      <button class="field" data-st="clearDone" style="width:100%;text-align:left;color:var(--red)" ${doneN?'':'disabled'}><span>Borrar completadas</span><span style="color:var(--muted)">${doneN}</span></button>
+      <button class="field" data-st="seed" style="width:100%;text-align:left"><span>Cargar las tareas de mi nota</span></button>
+    </div>
+    <div class="glabel">Cómo funciona</div>
+    <div class="group"><div class="help">
+      <b>Escribe natural:</b> “jueves 3 a las 3:30 peluquero”, “entregar práctica para el 6”, “examen TDA en 2 semanas”, “comprar petos mañana”. Detecta fecha, hora y tipo. Añade “urgente” para marcarla.<br><br>
+      <b>Avisos por tipo:</b> 📝 Examen 1 semana, 3 días y 1 día antes · 📦 Entrega 3 días y 1 día · 🩺 Cita la noche anterior y el mismo día · 🎓 Clase la noche anterior · 🛒 Recado y 📌 Otro el mismo día.<br><br>
+      <b>Horas:</b> avisos de varios días antes a las 9:00, la víspera a las 20:00 y el mismo día 1 h antes (o a las 8:30 si no tiene hora).<br><br>
+      <b>Radar:</b> arriba salen las urgentes que ya están dentro de su periodo de aviso.<br><br>
+      Los datos se guardan solo en este iPhone. Haz una copia de vez en cuando.
+    </div></div>`;
+  openSheet();
+}
+$('#sheet').addEventListener('click', e => {
+  if (!$('#settingsMarker')) return;
+  const b = e.target.closest('[data-st]'); if (!b || b.disabled) return;
+  const act = b.dataset.st;
+  if (act === 'close') closeSheet();
+  else if (act === 'calAll') {
+    const list = S.tasks.filter(t => !t.done && t.date && t.calSig !== calSig(t));
+    deliverICS(buildICS(list), 'tareas.ics', false);
+    list.forEach(t => t.calSig = calSig(t)); save(); render(); openSettings();
+  }
+  else if (act === 'export') {
+    const blob = new Blob([JSON.stringify(S, null, 1)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `tareas-copia-${ymd(new Date())}.json`; document.body.appendChild(a); a.click(); a.remove();
+  }
+  else if (act === 'clearDone') { S.tasks = S.tasks.filter(t => !t.done); save(); render(); openSettings(); toast('Completadas borradas'); }
+  else if (act === 'seed') { closeSheet(); seed(); }
+});
+$('#sheet').addEventListener('change', e => {
+  if (e.target.id !== 'importFile') return;
+  const f = e.target.files[0]; if (!f) return;
+  f.text().then(txt => {
+    try {
+      const r = JSON.parse(txt); if (!Array.isArray(r.tasks)) throw 0;
+      const ids = new Set(S.tasks.map(t => t.id)); let n = 0;
+      for (const t of r.tasks) if (!ids.has(t.id)) { S.tasks.push(t); n++; }
+      save(); render(); closeSheet(); toast(`${n} tareas importadas`);
+    } catch(err) { toast('Ese archivo no es una copia válida'); }
+  });
+});
+
+// ===== Tareas de ejemplo (de tu nota) =====
+function seed(){
+  const mk = (title, cat, date, time, extra) => Object.assign({id:uid(), title, notes:'', cat, date, time:time||null, urgent:CATS[cat].urgent, alerts:CATS[cat].alerts.slice(), done:false, createdAt:Date.now(), calSig:null}, extra||{});
+  const list = [
+    mk('Venir a TDA: prácticas estudio de sonido', 'clase', '2026-12-01'),
+    mk('Venir a TDA: prácticas estudio de sonido', 'clase', '2026-12-10'),
+    mk('Humanidades', 'examen', '2026-12-02', null, {notes:'Preguntar qué temas entran'}),
+    mk('Hacer práctica de Comunicaciones Digitales', 'entrega', '2026-12-02'),
+    mk('Peluquero', 'cita', '2026-12-03', '15:30'),
+    mk('Completar proyecto Sistemas Digitales', 'entrega', '2026-12-06', null, {notes:'Llevar cinta aislante, pegamento y tijeras'}),
+    mk('Ir a por ropa para salir y petos (tienda de deportes)', 'recado', '2026-11-24'),
+    mk('Preguntar qué temas entran en Humanidades', 'recado', null, null, {urgent:true}),
+    mk('Entregar práctica pendiente', 'entrega', null),
+    mk('Trabajo Redes Ópticas', 'entrega', null),
+  ];
+  S.tasks.push(...list); save(); render();
+  toast(`${list.length} tareas cargadas · revísalas`);
+}
+
+// ===== Toast =====
+let toastTimer;
+function toast(msg, btn, fn){
+  $('#toastMsg').textContent = msg;
+  const b = $('#toastBtn'); b.textContent = btn || ''; b.style.display = btn ? '' : 'none';
+  b.onclick = () => { $('#toast').classList.remove('show'); fn && fn(); };
+  $('#toast').classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('show'), 4000);
+}
+
+// Refresca al volver a la app (cambia "hoy", "mañana"…)
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+render();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
