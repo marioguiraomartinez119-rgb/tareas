@@ -42,6 +42,38 @@ h1{font-size:34px;font-weight:700;letter-spacing:.2px;margin:4px 0 2px}
 .chip.on{background:var(--text);color:var(--bg)}
 
 main{padding:4px 16px}
+.hero{margin:10px 0 4px;border-radius:22px;padding:16px 18px 14px;color:#fff;background:linear-gradient(135deg,#0a84ff 0%,#5e5ce6 100%);box-shadow:0 8px 24px rgba(10,132,255,.25)}
+.hero-top{display:flex;justify-content:space-between;align-items:center;font-size:15px;opacity:.95;font-weight:600}
+.hero-btn{background:rgba(255,255,255,.2);color:#fff;padding:7px 12px;border-radius:999px;font-size:14px;font-weight:600}
+.hero-main{display:flex;align-items:baseline;gap:8px;margin:8px 0 10px}
+.hero-main b{font-size:44px;line-height:1;font-weight:800;letter-spacing:-1px}
+.hero-main span{font-size:17px;font-weight:600;opacity:.95}
+.hero-next{display:block;width:100%;text-align:left;background:rgba(0,0,0,.18);color:#fff;border-radius:12px;padding:9px 12px;font-size:14px}
+.forgot{margin-top:14px;background:var(--card);border-radius:18px;padding:12px 14px 6px;box-shadow:var(--shadow);border:1.5px solid color-mix(in srgb,var(--orange) 55%,transparent)}
+.forgot-h{font-weight:700;font-size:17px;margin-bottom:6px}
+.forgot-row{padding:8px 0 10px}
+.forgot-row + .forgot-row{border-top:.5px solid var(--sep)}
+.forgot-t b{display:block;font-weight:600}
+.forgot-t span{font-size:13px;color:var(--muted)}
+.forgot-b{display:flex;gap:8px;margin-top:8px}
+.fb{flex:1;padding:8px 0;border-radius:10px;background:var(--card2);font-size:14px;font-weight:600}
+.fb.ok{background:var(--green);color:#fff}
+.calbanner{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin-top:14px;background:var(--card);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow)}
+.calbanner>span:first-child{font-size:26px}
+.calbanner div{flex:1}
+.calbanner b{display:block;font-size:16px}
+.calbanner small{color:var(--muted);font-size:13px;line-height:1.3;display:block;margin-top:2px}
+.calbanner .chev{font-size:26px;color:var(--muted)}
+.list{border-radius:18px!important}
+.row{padding:13px 14px 13px 12px!important}
+.section h2{font-size:22px!important;letter-spacing:-.3px}
+.news{text-align:center;padding:4px 6px 8px}
+.news-ico{font-size:44px;margin-top:6px}
+.news h2{font-size:28px;margin:4px 0 18px}
+.news-i{display:flex;gap:14px;text-align:left;margin-bottom:18px}
+.news-i>span{font-size:28px;width:40px;flex:none;text-align:center}
+.news-i b{font-size:17px}
+.news-i p{margin:2px 0 0;color:var(--muted);font-size:15px;line-height:1.4}
 .seg{display:flex;background:var(--card2);border-radius:9px;padding:2px;margin-top:10px}
 .seg button{flex:1;padding:6px 0;border-radius:7px;font-size:14px;font-weight:600;color:var(--muted)}
 .seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.15)}
@@ -190,10 +222,10 @@ main{padding:4px 16px}
 <div class="composer">
   <div class="preview" id="preview"></div>
   <form class="cbar" id="quickForm" autocomplete="off">
-    <button type="button" class="round more" id="btnMore" aria-label="Nueva tarea detallada">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M4 12h16M4 17h7"/></svg>
+    <button type="button" class="round more" id="btnImport" aria-label="Importar desde Notas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4.5V3h6v1.5M9 10h6M9 14h6M9 18h3"/></svg>
     </button>
-    <input id="quick" type="text" enterkeyhint="done" placeholder="Examen TDA el 10 de dic…">
+    <input id="quick" type="text" enterkeyhint="done" placeholder="Escribe una tarea… (ej. examen el 10 dic)">
     <button type="submit" class="round add" aria-label="Añadir">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
     </button>
@@ -362,10 +394,10 @@ if (typeof module !== 'undefined') module.exports = { parseTask, normalize, ymd 
 // ===== Configuración de categorías =====
 // alerts = días de antelación por defecto (0 = el mismo día)
 const CATS = {
-  examen:  {label:'Examen',  em:'📝', color:'#ff3b30', urgent:true,  alerts:[7,3,1]},
-  entrega: {label:'Entrega', em:'📦', color:'#ff9500', urgent:true,  alerts:[3,1]},
+  examen:  {label:'Examen',  em:'📝', color:'#ff3b30', urgent:true,  alerts:[7,3,1,0]},
+  entrega: {label:'Entrega', em:'📦', color:'#ff9500', urgent:true,  alerts:[3,1,0]},
   cita:    {label:'Cita',    em:'🩺', color:'#af52de', urgent:false, alerts:[1,0]},
-  clase:   {label:'Clase',   em:'🎓', color:'#007aff', urgent:false, alerts:[1]},
+  clase:   {label:'Clase',   em:'🎓', color:'#007aff', urgent:false, alerts:[1,0]},
   recado:  {label:'Recado',  em:'🛒', color:'#34c759', urgent:false, alerts:[0]},
   otro:    {label:'Otro',    em:'📌', color:'#8e8e93', urgent:false, alerts:[0]},
 };
@@ -378,6 +410,8 @@ const MON_LONG = ['enero','febrero','marzo','abril','mayo','junio','julio','agos
 // ===== Estado y guardado =====
 const LS = 'tareas.v1';
 let S = load();
+// Migración v4: todas las tareas con fecha avisan también el mismo día
+if (!S.mig4) { S.tasks.forEach(t => { if (Array.isArray(t.alerts) && !t.alerts.includes(0)) t.alerts.push(0); }); S.mig4 = true; if (S.forgotAlert === undefined) S.forgotAlert = true; try { localStorage.setItem('tareas.v1', JSON.stringify(S)); } catch(e){} }
 function load(){
   try { const r = JSON.parse(localStorage.getItem(LS)); if (r && Array.isArray(r.tasks)) return Object.assign({filter:'all', showDone:false, view:'list'}, r); } catch(e){}
   return {tasks:[], filter:'all', showDone:false, view:'list'};
@@ -422,7 +456,7 @@ const fmtMoment = d => `${WD_SHORT[d.getDay()]} ${d.getDate()} ${MON_SHORT[d.get
 // ===== Render =====
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const calSig = t => [t.title, t.date, t.time, t.alerts.slice().sort().join(','), t.cat].join('|');
+const calSig = t => [t.title, t.date, t.time, t.alerts.slice().sort().join(','), t.cat, S.forgotAlert !== false ? 'f' : ''].join('|');
 
 function sortTasks(a, b){
   if (a.date && b.date) {
@@ -483,6 +517,28 @@ function render(){
   const done = S.tasks.filter(t => t.done && passFilter(t)).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
   let html = '';
 
+  // Resumen de hoy
+  if (S.filter === 'all') {
+    const all = S.tasks.filter(t => !t.done);
+    const hoyN = all.filter(t => t.date && daysUntil(t.date) === 0).length;
+    const nextBig = all.filter(t => t.urgent && t.date && daysUntil(t.date) >= 0).sort(sortTasks)[0];
+    const h = new Date().getHours();
+    const saludo = h < 6 ? 'Buenas noches' : h < 14 ? 'Buenos días' : h < 21 ? 'Buenas tardes' : 'Buenas noches';
+    html += `<div class="hero">
+      <div class="hero-top"><span>${saludo}</span><button class="hero-btn" data-act="import">📋 Importar nota</button></div>
+      <div class="hero-main"><b>${hoyN || 'Nada'}</b><span>${hoyN === 1 ? 'tarea para hoy' : hoyN ? 'tareas para hoy' : 'para hoy 🎉'}</span></div>
+      ${nextBig ? `<button class="hero-next" data-id="${nextBig.id}" data-act="edit">⚡ Lo próximo importante: <b>${esc(nextBig.title)}</b> · ${relLabel(daysUntil(nextBig.date))}</button>` : `<div class="hero-next">Sin exámenes ni entregas a la vista</div>`}
+    </div>`;
+    const late = all.filter(t => t.date && daysUntil(t.date) < 0).sort(sortTasks);
+    if (late.length) html += `<div class="forgot"><div class="forgot-h">🤔 ¿Se te ${late.length === 1 ? 'ha olvidado esta' : 'han olvidado estas'}?</div>` + late.map(t => `
+      <div class="forgot-row" data-id="${t.id}">
+        <div class="forgot-t" data-act="edit"><b>${esc(t.title)}</b><span>era ${relLabel(daysUntil(t.date))} · ${fmtDate(t.date)}</span></div>
+        <div class="forgot-b"><button data-act="toggle" class="fb ok">✓ Hecha</button><button data-act="tomorrow" class="fb">Mañana</button><button data-act="nodate" class="fb">Sin fecha</button></div>
+      </div>`).join('') + `</div>`;
+    const noCal = all.filter(t => t.date && daysUntil(t.date) >= 0 && t.calSig !== calSig(t));
+    if (noCal.length) html += `<button class="calbanner" data-act="calAll"><span>🔔</span><div><b>Activa los avisos de ${noCal.length} ${noCal.length === 1 ? 'tarea' : 'tareas'}</b><small>Toca para añadirlas a tu Calendario y que te lleguen las notificaciones</small></div><span class="chev">›</span></button>`;
+  }
+
   // Radar: urgentes cuyo periodo de aviso ya ha empezado (o atrasadas)
   const radar = S.tasks.filter(t => !t.done && t.urgent && t.date && daysUntil(t.date) <= Math.max(...t.alerts, 0)).sort(sortTasks);
   if (radar.length && (S.filter === 'all' || S.filter === 'urgent')) {
@@ -505,7 +561,7 @@ function render(){
     else if (n <= 7) groups.week.push(t);
     else { const k = t.date.slice(0,7); (groups.months[k] = groups.months[k] || []).push(t); }
   }
-  html += section('Atrasadas', groups.late, 'overdue');
+  if (S.filter !== 'all') html += section('Atrasadas', groups.late, 'overdue');
   html += section('Hoy', groups.today);
   html += section('Mañana', groups.tomorrow);
   html += section('Próximos 7 días', groups.week);
@@ -632,9 +688,11 @@ $('#quickForm').addEventListener('submit', e => {
   const t = draftFromText(v);
   S.tasks.push(t); save();
   $('#quick').value = ''; updatePreview(); render();
-  toast(`Añadida${t.date ? ' · ' + fmtDate(t.date) : ''}`, 'Editar', () => openEditor(t.id));
+  if (t.date) toast(`Añadida · ${fmtDate(t.date)}`, '🔔 Avisarme', () => { deliverICS(buildICS([t]), slug(t.title) + '.ics', false); t.calSig = calSig(t); save(); render(); });
+  else toast('Añadida sin fecha', 'Editar', () => openEditor(t.id));
 });
-$('#btnMore').addEventListener('click', () => {
+$('#btnImport').addEventListener('click', () => openImport());
+if (false) $('#x').addEventListener('click', () => {
   const v = $('#quick').value.trim();
   openEditor(null, v ? draftFromText(v) : null);
   $('#quick').value = ''; updatePreview();
@@ -651,6 +709,19 @@ document.addEventListener('click', e => {
   else if (act === 'edit') openEditor(id);
   else if (act === 'toggleDone') { S.showDone = !S.showDone; save(); render(); }
   else if (act === 'seed') seed();
+  else if (act === 'tomorrow' || act === 'nodate') {
+    const t = S.tasks.find(x => x.id === id); if (!t) return;
+    const prev = t.date;
+    if (act === 'tomorrow') { const d = today0(); d.setDate(d.getDate()+1); t.date = ymd(d); } else { t.date = null; t.time = null; }
+    save(); render(); toast(act === 'tomorrow' ? 'Pasada a mañana' : 'Ahora está sin fecha', 'Deshacer', () => { t.date = prev; save(); render(); });
+  }
+  else if (act === 'calAll') {
+    const list = S.tasks.filter(t => !t.done && t.date && daysUntil(t.date) >= 0 && t.calSig !== calSig(t));
+    if (!list.length) return;
+    deliverICS(buildICS(list), 'tareas.ics', false);
+    list.forEach(t => t.calSig = calSig(t)); save(); render();
+    toast('Pulsa «Añadir todo» en la ventana del Calendario');
+  }
   else if (act === 'import') openImport();
 });
 function toggleDone(id){
@@ -724,7 +795,7 @@ $('#sheet').addEventListener('change', e => {
   } else if (e.target.id === 'fDate' || e.target.id === 'fTime') renderEditor();
 });
 $('#sheet').addEventListener('click', e => {
-  if ($('#settingsMarker') || $('#importMarker')) return; // otras hojas tienen su propio manejador
+  if ($('#settingsMarker') || $('#importMarker') || $('#newsMarker')) return; // otras hojas tienen su propio manejador
   const cat = e.target.closest('[data-cat]'), al = e.target.closest('[data-alert]'), ed = e.target.closest('[data-ed]');
   if (cat) { readEditorFields(); editing.cat = cat.dataset.cat; editing.alerts = CATS[editing.cat].alerts.slice(); editing.urgent = CATS[editing.cat].urgent; renderEditor(); return; }
   if (al) { readEditorFields(); const n = +al.dataset.alert; editing.alerts = editing.alerts.includes(n) ? editing.alerts.filter(x=>x!==n) : [...editing.alerts, n]; renderEditor(); return; }
@@ -799,6 +870,10 @@ function buildICS(tasks){
       const txt = n === 0 ? `Hoy: ${t.title}${t.time ? ' a las ' + t.time : ''}` : n === 1 ? `Mañana: ${t.title}` : `En ${n} días: ${t.title}`;
       L.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(txt), 'TRIGGER;VALUE=DATE-TIME:' + icsUTC(m), 'END:VALARM');
     }
+    if (S.forgotAlert !== false) {
+      const f = fromYMD(t.date); f.setDate(f.getDate() + 1); f.setHours(10,0,0,0);
+      if (f > now) L.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(`⚠️ ¿Se te olvidó? «${t.title}» era ayer. Si ya la hiciste, márcala en Tareas`), 'TRIGGER;VALUE=DATE-TIME:' + icsUTC(f), 'END:VALARM');
+    }
     L.push('END:VEVENT');
   }
   L.push('END:VCALENDAR');
@@ -830,6 +905,11 @@ function openSettings(){
     <div class="glabel">Calendario</div>
     <div class="group">
       <button class="field" data-st="calAll" style="width:100%;text-align:left" ${pendDated.length?'':'disabled'}><span>📅 Añadir al calendario las que faltan</span><span style="color:var(--muted)">${pendDated.length}</span></button>
+    </div>
+    <div class="glabel">Avisos</div>
+    <div class="group">
+      <button class="field" data-st="forgot" style="width:100%;text-align:left"><span>⚠️ Avisarme si se me olvida una tarea<br><small style="color:var(--muted)">Al día siguiente a las 10:00</small></span><span style="color:${S.forgotAlert !== false ? 'var(--green)' : 'var(--muted)'};font-weight:600">${S.forgotAlert !== false ? 'Sí' : 'No'}</span></button>
+      <button class="field" data-st="news" style="width:100%;text-align:left"><span>✨ Ver novedades</span><span style="color:var(--muted)">›</span></button>
     </div>
     <div class="glabel">Importar</div>
     <div class="group">
@@ -872,6 +952,8 @@ $('#sheet').addEventListener('click', e => {
   else if (act === 'clearDone') { S.tasks = S.tasks.filter(t => !t.done); save(); render(); openSettings(); toast('Completadas borradas'); }
   else if (act === 'seed') { closeSheet(); seed(); }
   else if (act === 'import') openImport();
+  else if (act === 'news') openWhatsNew();
+  else if (act === 'forgot') { S.forgotAlert = !(S.forgotAlert !== false); save(); render(); openSettings(); }
 });
 $('#sheet').addEventListener('change', e => {
   if (e.target.id !== 'importFile') return;
@@ -983,7 +1065,27 @@ function toast(msg, btn, fn){
 
 // Refresca al volver a la app (cambia "hoy", "mañana"…)
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+function openWhatsNew(){
+  $('#sheet').innerHTML = `<span id="newsMarker"></span><div class="grab"></div>
+    <div class="news">
+      <div class="news-ico">✨</div><h2>Novedades</h2>
+      <div class="news-i"><span>📋</span><div><b>Importa tu nota entera</b><p>Copia el texto en Notas y pégalo. Cada línea se convierte en una tarea con su fecha. Botón 📋 abajo a la izquierda.</p></div></div>
+      <div class="news-i"><span>📅</span><div><b>Vista de calendario</b><p>Arriba, en <i>Calendario</i>. Los exámenes y entregas salen en rojo y los días para prepararte, sombreados.</p></div></div>
+      <div class="news-i"><span>🔔</span><div><b>Aviso el mismo día</b><p>Todas las tareas te avisan el día que tocan. Y si pasa el día sin marcarla, te pregunta si se te ha olvidado.</p></div></div>
+      <button class="btn primary" data-news="import">📋 Importar mi nota ahora</button>
+      <button class="btn" data-news="ok">Entendido</button>
+    </div>`;
+  openSheet();
+}
+$('#sheet').addEventListener('click', e => {
+  if (!$('#newsMarker')) return;
+  const b = e.target.closest('[data-news]'); if (!b) return;
+  S.seen = 4; save();
+  if (b.dataset.news === 'import') openImport(); else closeSheet();
+});
+
 render();
+if (S.seen !== 4) setTimeout(openWhatsNew, 400);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
