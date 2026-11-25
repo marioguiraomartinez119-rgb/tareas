@@ -42,6 +42,33 @@ h1{font-size:34px;font-weight:700;letter-spacing:.2px;margin:4px 0 2px}
 .chip.on{background:var(--text);color:var(--bg)}
 
 main{padding:4px 16px}
+.seg{display:flex;background:var(--card2);border-radius:9px;padding:2px;margin-top:10px}
+.seg button{flex:1;padding:6px 0;border-radius:7px;font-size:14px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.cal{background:var(--card);border-radius:14px;padding:10px 8px 12px;margin-top:10px;box-shadow:var(--shadow)}
+.calhead{display:flex;align-items:center;justify-content:space-between;padding:2px 6px 10px}
+.calhead b{font-size:18px}
+.calhead button{width:36px;height:36px;border-radius:50%;font-size:22px;color:var(--accent)}
+.calhead .hoy{width:auto;font-size:14px;font-weight:600;padding:0 10px}
+.wd{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center;font-size:12px;color:var(--muted);font-weight:600;padding-bottom:4px}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.day{aspect-ratio:1/1.05;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:6px;font-size:16px;position:relative;font-variant-numeric:tabular-nums}
+.day.out{opacity:.3}
+.day.prep{background:color-mix(in srgb,var(--orange) 16%,transparent)}
+.day.prep2{background:color-mix(in srgb,var(--red) 16%,transparent)}
+.day.past{color:var(--muted)}
+.day.today .n{background:var(--accent);color:#fff;border-radius:50%;width:28px;height:28px;display:grid;place-items:center;font-weight:700;margin-top:-3px}
+.day.sel{outline:2px solid var(--text);outline-offset:-2px}
+.day.big{background:var(--red);color:#fff}
+.day.big.today .n{background:#fff;color:var(--red)}
+.dots{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap;justify-content:center;max-width:90%}
+.dots i{width:6px;height:6px;border-radius:50%;display:block}
+.day.big .dots i{background:#fff!important}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);padding:10px 6px 0}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend em{width:12px;height:12px;border-radius:4px;display:inline-block}
+.dayinfo{margin-top:16px}
+.dayinfo .prepnote{font-size:14px;color:var(--orange);font-weight:600;margin:0 4px 8px}
 
 /* Radar */
 .radar{margin:8px 0 4px}
@@ -154,6 +181,7 @@ main{padding:4px 16px}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>
     </button>
   </div>
+  <div class="seg" id="seg"><button data-view="list">Lista</button><button data-view="cal">Calendario</button></div>
   <div class="filters" id="filters"></div>
 </header>
 
@@ -351,8 +379,8 @@ const MON_LONG = ['enero','febrero','marzo','abril','mayo','junio','julio','agos
 const LS = 'tareas.v1';
 let S = load();
 function load(){
-  try { const r = JSON.parse(localStorage.getItem(LS)); if (r && Array.isArray(r.tasks)) return Object.assign({filter:'all', showDone:false}, r); } catch(e){}
-  return {tasks:[], filter:'all', showDone:false};
+  try { const r = JSON.parse(localStorage.getItem(LS)); if (r && Array.isArray(r.tasks)) return Object.assign({filter:'all', showDone:false, view:'list'}, r); } catch(e){}
+  return {tasks:[], filter:'all', showDone:false, view:'list'};
 }
 function save(){ try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){} }
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
@@ -449,6 +477,8 @@ function render(){
   const d = new Date();
   $('#today').textContent = `${WD_LONG[d.getDay()]} ${d.getDate()} de ${MON_LONG[d.getMonth()]}`;
   renderFilters();
+  document.querySelectorAll('#seg button').forEach(b => b.classList.toggle('on', b.dataset.view === (S.view||'list')));
+  if (S.view === 'cal') { renderCalendar(); return; }
   const pend = S.tasks.filter(t => !t.done && passFilter(t)).sort(sortTasks);
   const done = S.tasks.filter(t => t.done && passFilter(t)).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
   let html = '';
@@ -489,7 +519,7 @@ function render(){
   if (!pend.length) {
     html += S.tasks.length
       ? `<div class="empty"><div class="e">🎉</div><p>Nada pendiente${S.filter!=='all'?' en este filtro':''}.</p></div>`
-      : `<div class="empty"><div class="e">✍️</div><p>Escribe abajo como lo harías en Notas:<br><b>“examen redes el 10 de dic”</b><br>y la app detecta la fecha, la hora y el tipo.</p><button data-act="seed">Cargar las tareas de mi nota</button></div>`;
+      : `<div class="empty"><div class="e">✍️</div><p>Escribe abajo como lo harías en Notas:<br><b>“examen redes el 10 de dic”</b><br>y la app detecta la fecha, la hora y el tipo.</p><button data-act="import">📋 Importar desde Notas</button><br><button data-act="seed">Cargar las tareas de ejemplo</button></div>`;
   }
   if (done.length) {
     html += `<button class="donetoggle" data-act="toggleDone">${S.showDone ? 'Ocultar' : 'Mostrar'} completadas (${done.length})</button>`;
@@ -498,10 +528,89 @@ function render(){
   $('#main').innerHTML = html;
 }
 
+// ===== Calendario =====
+let calMonth = null, calSel = null; // calMonth = 'YYYY-MM'
+function prepDaysFor(t){ return t.urgent ? Math.max(...t.alerts, 1) : 0; }
+function renderCalendar(){
+  const t0 = today0();
+  if (!calMonth) calMonth = ymd(t0).slice(0,7);
+  if (!calSel) calSel = ymd(t0);
+  const [Y, M] = calMonth.split('-').map(Number);
+  const pend = S.tasks.filter(t => !t.done && t.date && passFilter(t));
+  const byDay = {}, prep = {};
+  for (const t of pend) {
+    (byDay[t.date] = byDay[t.date] || []).push(t);
+    const n = prepDaysFor(t);
+    for (let i = 1; i <= n; i++) {
+      const d = fromYMD(t.date); d.setDate(d.getDate() - i); const k = ymd(d);
+      if (d < t0) continue;
+      (prep[k] = prep[k] || []).push({t, i});
+    }
+  }
+  const first = new Date(Y, M-1, 1), startOff = (first.getDay() + 6) % 7; // lunes primero
+  const start = new Date(Y, M-1, 1 - startOff);
+  let cells = '';
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i); const k = ymd(d);
+    if (i >= 35 && d.getMonth() !== M-1) break;
+    const list = byDay[k] || [], hasBig = list.some(t => t.urgent);
+    const p = prep[k] || [], minI = p.length ? Math.min(...p.map(x => x.i)) : 99;
+    const cls = ['day', d.getMonth() !== M-1 ? 'out' : '', k === ymd(t0) ? 'today' : '', k === calSel ? 'sel' : '',
+      d < t0 ? 'past' : '', hasBig ? 'big' : (p.length ? (minI <= 1 ? 'prep2' : 'prep') : '')].join(' ');
+    const dots = list.slice(0,4).map(t => `<i style="background:${(CATS[t.cat]||CATS.otro).color}"></i>`).join('');
+    cells += `<button class="${cls}" data-day="${k}"><span class="n">${d.getDate()}</span><span class="dots">${dots}</span></button>`;
+  }
+  let html = `<div class="cal">
+    <div class="calhead"><button data-cal="prev" aria-label="Mes anterior">‹</button><b>${MON_LONG[M-1].replace(/^./, c => c.toUpperCase())} ${Y}</b><span><button class="hoy" data-cal="today">Hoy</button><button data-cal="next" aria-label="Mes siguiente">›</button></span></div>
+    <div class="wd"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+    <div class="grid">${cells}</div>
+    <div class="legend"><span><em style="background:var(--red)"></em>Examen/entrega importante</span><span><em style="background:color-mix(in srgb,var(--red) 30%,transparent)"></em>Víspera</span><span><em style="background:color-mix(in srgb,var(--orange) 30%,transparent)"></em>Días para prepararte</span></div>
+  </div>`;
+  // Detalle del día elegido
+  const dl = (byDay[calSel] || []).sort(sortTasks), pl = prep[calSel] || [];
+  html += `<div class="dayinfo">`;
+  if (pl.length) html += `<div class="prepnote">📚 Prepárate: ${pl.sort((a,b)=>a.i-b.i).map(x => `${esc(x.t.title)} (${x.i === 1 ? 'mañana' : 'en ' + x.i + ' días'})`).join(' · ')}</div>`;
+  html += dl.length ? section(fmtDate(calSel, true).replace(/^./, c => c.toUpperCase()), dl)
+                    : `<div class="empty" style="padding:24px 20px"><p>Nada este día.<br><button data-act="addOnDay">+ Añadir tarea el ${fmtDate(calSel)}</button></p></div>`;
+  if (dl.length) html += `<button class="donetoggle" data-act="addOnDay">+ Añadir tarea este día</button>`;
+  html += `</div>`;
+  const undated = S.tasks.filter(t => !t.done && !t.date && passFilter(t)).sort(sortTasks);
+  html += section('Sin fecha', undated);
+  $('#main').innerHTML = html;
+}
+document.addEventListener('click', e => {
+  const v = e.target.closest('[data-view]');
+  if (v) { S.view = v.dataset.view; save(); render(); window.scrollTo(0,0); return; }
+  const dy = e.target.closest('[data-day]');
+  if (dy) { calSel = dy.dataset.day; if (calSel.slice(0,7) !== calMonth) calMonth = calSel.slice(0,7); render(); return; }
+  const c = e.target.closest('[data-cal]');
+  if (c) {
+    const [Y, M] = calMonth.split('-').map(Number);
+    if (c.dataset.cal === 'today') { calMonth = ymd(today0()).slice(0,7); calSel = ymd(today0()); }
+    else { const d = new Date(Y, M-1 + (c.dataset.cal === 'next' ? 1 : -1), 1); calMonth = ymd(d).slice(0,7); }
+    render(); return;
+  }
+  const a = e.target.closest('[data-act="addOnDay"]');
+  if (a) { const base = draftFromText('x'); Object.assign(base, {title:'', date: calSel, time:null, cat:'otro', alerts:[0], urgent:false}); openEditor(null, base); }
+});
+// Deslizar para cambiar de mes
+let tx = null;
+document.addEventListener('touchstart', e => { if (S.view === 'cal' && e.target.closest('.grid')) tx = e.touches[0].clientX; }, {passive:true});
+document.addEventListener('touchend', e => {
+  if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; tx = null;
+  if (Math.abs(dx) < 60) return;
+  const [Y, M] = calMonth.split('-').map(Number); calMonth = ymd(new Date(Y, M-1 + (dx < 0 ? 1 : -1), 1)).slice(0,7); render();
+});
+
 // ===== Añadir rápido =====
 function draftFromText(txt){
   const p = parseTask(txt);
   const c = CATS[p.cat];
+  // Frases escritas en MAYÚSCULAS → "Primera en mayúscula"
+  const letters = (p.title||'').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ]/g,'');
+  const upper = letters.replace(/[^A-ZÁÉÍÓÚÑ]/g,'').length;
+  if (letters.length > 4 && upper / letters.length > 0.6) p.title = p.title.toLowerCase().replace(/^./, ch => ch.toUpperCase());
+  else if (p.title) p.title = p.title.replace(/\b([A-ZÁÉÍÓÚÑ])([A-ZÁÉÍÓÚÑ]{3,})\b/g, (m, f, r) => f + r.toLowerCase());
   return {id: uid(), title: p.title || txt.trim(), notes:'', cat:p.cat, date:p.date, time:p.time,
           urgent: p.urgent === true ? true : c.urgent, alerts: c.alerts.slice(), done:false, createdAt: Date.now(), calSig:null};
 }
@@ -542,6 +651,7 @@ document.addEventListener('click', e => {
   else if (act === 'edit') openEditor(id);
   else if (act === 'toggleDone') { S.showDone = !S.showDone; save(); render(); }
   else if (act === 'seed') seed();
+  else if (act === 'import') openImport();
 });
 function toggleDone(id){
   const t = S.tasks.find(x => x.id === id); if (!t) return;
@@ -614,7 +724,7 @@ $('#sheet').addEventListener('change', e => {
   } else if (e.target.id === 'fDate' || e.target.id === 'fTime') renderEditor();
 });
 $('#sheet').addEventListener('click', e => {
-  if ($('#settingsMarker')) return; // la hoja de ajustes tiene su propio manejador
+  if ($('#settingsMarker') || $('#importMarker')) return; // otras hojas tienen su propio manejador
   const cat = e.target.closest('[data-cat]'), al = e.target.closest('[data-alert]'), ed = e.target.closest('[data-ed]');
   if (cat) { readEditorFields(); editing.cat = cat.dataset.cat; editing.alerts = CATS[editing.cat].alerts.slice(); editing.urgent = CATS[editing.cat].urgent; renderEditor(); return; }
   if (al) { readEditorFields(); const n = +al.dataset.alert; editing.alerts = editing.alerts.includes(n) ? editing.alerts.filter(x=>x!==n) : [...editing.alerts, n]; renderEditor(); return; }
@@ -721,6 +831,10 @@ function openSettings(){
     <div class="group">
       <button class="field" data-st="calAll" style="width:100%;text-align:left" ${pendDated.length?'':'disabled'}><span>📅 Añadir al calendario las que faltan</span><span style="color:var(--muted)">${pendDated.length}</span></button>
     </div>
+    <div class="glabel">Importar</div>
+    <div class="group">
+      <button class="field" data-st="import" style="width:100%;text-align:left"><span>📋 Importar desde Notas</span><span style="color:var(--muted)">›</span></button>
+    </div>
     <div class="glabel">Copia de seguridad</div>
     <div class="group">
       <button class="field" data-st="export" style="width:100%;text-align:left"><span>⬇️ Exportar copia (.json)</span></button>
@@ -757,6 +871,7 @@ $('#sheet').addEventListener('click', e => {
   }
   else if (act === 'clearDone') { S.tasks = S.tasks.filter(t => !t.done); save(); render(); openSettings(); toast('Completadas borradas'); }
   else if (act === 'seed') { closeSheet(); seed(); }
+  else if (act === 'import') openImport();
 });
 $('#sheet').addEventListener('change', e => {
   if (e.target.id !== 'importFile') return;
@@ -789,6 +904,72 @@ function seed(){
   S.tasks.push(...list); save(); render();
   toast(`${list.length} tareas cargadas · revísalas`);
 }
+
+// ===== Importar desde Notas =====
+let importRows = [];
+function openImport(){
+  importRows = [];
+  $('#sheet').innerHTML = `<span id="importMarker"></span>
+    <div class="grab"></div>
+    <div class="sheethead"><button data-im="close">Cancelar</button><b>Importar desde Notas</b><span style="width:60px"></span></div>
+    <div class="help" style="padding:0 4px 12px">En Notas: mantén pulsado el texto → <b>Seleccionar todo</b> → <b>Copiar</b>. Luego pégalo aquí. Cada línea será una tarea.</div>
+    <div class="group"><div class="field"><textarea id="imText" placeholder="Pega aquí tu nota…" style="min-height:160px"></textarea></div></div>
+    <div class="btnrow"><button class="btn" data-im="paste">📋 Pegar</button><button class="btn primary" data-im="parse">Analizar</button></div>
+    <div id="imList"></div>`;
+  openSheet();
+}
+function renderImportList(){
+  const n = importRows.filter(r => r.on).length;
+  $('#imList').innerHTML = importRows.length ? `
+    <div class="glabel" style="margin-top:8px">${importRows.length} tareas detectadas · toca para quitar o editar el texto</div>
+    <div class="list" style="margin-bottom:14px">${importRows.map((r,i) => {
+      const t = r.t, c = CATS[t.cat];
+      return `<div class="row ${t.urgent?'urgent':''}" style="opacity:${r.on?1:.4}">
+        <button class="check ${r.on?'done':''}" data-imtoggle="${i}"></button>
+        <div class="body"><input type="text" data-imedit="${i}" value="${esc(r.src)}" style="width:100%;border:0;background:none;outline:0;font-weight:500;font-size:16px">
+        <div class="meta"><span class="tag" style="background:${c.color}22;color:${c.color}">${c.em} ${c.label}</span><span>${t.date ? fmtDate(t.date) + (t.time ? ' · ' + t.time : '') : 'Sin fecha'}</span><span>→ ${esc(t.title)}</span></div></div>
+      </div>`; }).join('')}</div>
+    <button class="btn primary" data-im="add" ${n?'':'disabled'}>Añadir ${n} tareas</button>` : '';
+}
+$('#sheet').addEventListener('click', async e => {
+  if (!$('#importMarker')) return;
+  const tg = e.target.closest('[data-imtoggle]');
+  if (tg) { const r = importRows[+tg.dataset.imtoggle]; r.on = !r.on; renderImportList(); return; }
+  const b = e.target.closest('[data-im]'); if (!b || b.disabled) return;
+  const act = b.dataset.im;
+  if (act === 'close') closeSheet();
+  else if (act === 'paste') {
+    try { $('#imText').value = await navigator.clipboard.readText(); }
+    catch(err) { $('#imText').focus(); toast('Mantén pulsado el cuadro y toca Pegar'); }
+  }
+  else if (act === 'parse') {
+    const lines = $('#imText').value.split(/\r?\n/).map(l => l.replace(/^\s*(?:[-•*·◦▪︎☐☑✓✔]|\d+[.)])\s*/, '').trim())
+      .filter(l => l.length >= 3 && !/^tareas:?$/i.test(l));
+    // "1 y 10 de diciembre" → una tarea por fecha
+    const expanded = [];
+    for (const l of lines) {
+      const m = l.match(/\b(\d{1,2})\s+y\s+(\d{1,2})\s+(de\s+[a-záéíóú]+)/i);
+      if (m) { expanded.push(l.replace(m[0], m[1] + ' ' + m[3])); expanded.push(l.replace(m[0], m[2] + ' ' + m[3])); }
+      else expanded.push(l);
+    }
+    importRows = expanded.map(src => ({src, on:true, t:draftFromText(src)}));
+    if (!importRows.length) toast('No he encontrado líneas con texto');
+    renderImportList();
+    setTimeout(() => { const l = $('#imList'); l && l.scrollIntoView({behavior:'smooth'}); }, 50);
+  }
+  else if (act === 'add') {
+    const add = importRows.filter(r => r.on).map(r => r.t);
+    S.tasks.push(...add); save(); closeSheet(); render();
+    toast(`${add.length} tareas añadidas`);
+  }
+});
+$('#sheet').addEventListener('change', e => {
+  if (!$('#importMarker') || !e.target.dataset.imedit) return;
+  const i = +e.target.dataset.imedit, src = e.target.value.trim();
+  importRows[i].src = src; const keep = importRows[i].t.id;
+  importRows[i].t = Object.assign(draftFromText(src), {id: keep});
+  renderImportList();
+});
 
 // ===== Toast =====
 let toastTimer;
